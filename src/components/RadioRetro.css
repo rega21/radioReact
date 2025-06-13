@@ -1,0 +1,109 @@
+.radio-container {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  margin-top: 270px;
+  transform: translateX(30px); /* Ajusta el valor según lo que necesites */
+}
+
+.radio-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
+
+/* Si quieres que el dial esté alineado sobre la imagen, ajusta estos valores: */
+.dial-retro {
+  position: absolute;
+  left: 0;      /* Ajusta según la posición de la ventana en la imagen */
+  top: 0;       /* Ajusta según la posición de la ventana en la imagen */
+  width: 100%;  /* Ajusta según el ancho de la ventana */
+  height: 100%; /* Ajusta según el alto de la ventana */
+  background: transparent;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  z-index: 2;
+}
+
+/* Estilos hijos del dial retro */
+.dial-scale {
+  position: absolute;
+  bottom: 28px;
+  left: 10px;
+  right: 10px;
+  height: 18px;
+}
+
+.dial-tick {
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 18px;
+  background: transparent;
+  opacity: 0.85;
+}
+
+.dial-needle {
+  position: absolute;
+  bottom: 28px;
+  width: 8px;
+  height: 80px;
+  margin-left: -4px;
+  background: linear-gradient(to top, #e53935 70%, #ffb3b3 100%);
+  border-radius: 8px 8px 16px 16px;
+  box-shadow: 0 0 16px #bfa10088, 0 2px 8px #000a;
+  border: 2px solid #b71c1c;
+  transition: left 0.2s cubic-bezier(.4,2,.6,1);
+  cursor: grab;
+  z-index: 3;
+}
+
+/* Área invisible para facilitar el drag */
+.dial-needle::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 0;
+  width: 28px;
+  height: 100%;
+  opacity: 0;
+  cursor: grab;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.dial-label {
+  position: absolute;
+  width: 100%;
+  top: 24px;
+  text-align: center;
+  color: #ffd700;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.3rem;
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 6px #000;
+  user-select: none;
+  pointer-events: none;
+  background: rgba(24,24,24,0.3);
+  border-radius: 8px;
+}
+
+.h1-emisora {
+  position: absolute;
+  left: 45%;
+  top: -90px; /* Ajusta según tu diseño */
+  transform: translateX(-50%);
+  font-family: 'Share Tech Mono', monospace;
+  color: #2f3b79;
+  font-size: 2rem;
+  letter-spacing: 5px;
+  margin: 0;
+  z-index: 1; /* Menor que la aguja */
+  pointer-events: none;
+}
+
+
+

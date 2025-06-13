@@ -76,13 +76,13 @@ function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation })
     setCountdown(3);
     // Espera 3 segundos y cambia automáticamente
     const id = setTimeout(() => {
-      skipToNext();
+      skipToNext(false); // No activa el botón visualmente
     }, 3000);
     setTimeoutId(id);
   };
 
   // Función para saltar a la siguiente emisora
-  const skipToNext = () => {
+  const skipToNext = (fromUser = false) => {
     if (timeoutId) {
       clearTimeout(timeoutId);
       setTimeoutId(null);
@@ -91,7 +91,7 @@ function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation })
     if (idx !== -1) {
       const nextIdx = (idx + 1) % stations.length; // Loop
       setCurrentStation(stations[nextIdx]);
-      setActiveBtn('next');
+      if (fromUser) setActiveBtn('next');
     }
   };
 
@@ -125,7 +125,7 @@ function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation })
         <button
           className={`radio-btn${activeBtn === 'next' ? ' active' : ''}`}
           style={{ marginLeft: 8 }}
-          onClick={() => { skipToNext(); setActiveBtn('next'); }}
+          onClick={() => { skipToNext(true); setActiveBtn('next'); }}
           disabled={stations.length <= 1}
           title="Siguiente emisora"
           aria-label="Siguiente emisora"

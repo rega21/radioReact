@@ -11,3 +11,40 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* src/index.css */
+:root {
+  --main-bg: #181818;
+  --main-fg: #ffd700;
+  /* Agrega aquí otras variables globales si las usas */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --main-bg: #181818;
+    --main-fg: #ffd700;
+  }
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --main-bg: #fffbe0;
+    --main-fg: #232946;
+  }
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--main-bg);
+  color: var(--main-fg);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.radio-bg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 800px; /* o el tamaño máximo que prefieras */
+  margin: 0 auto;
+}
