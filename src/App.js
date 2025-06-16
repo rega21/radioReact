@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import RadioPlayer from './components/RadioPlayer';
-import RadioRetro from "./components/RadioRetro";
+import RadioRetro from './components/RadioRetro';
 
 const STATIONS = [
   { name: "Piano Jazz", url: "https://streamingv2.shoutcast.com/RadioArt-PianoJazz", category: "jazz" },
@@ -21,37 +21,50 @@ function App() {
   const [currentStation, setCurrentStation] = useState(STATIONS[0]);
   const [volume, setVolume] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [error, setError] = useState(false);
 
-  // Activa play automáticamente al cambiar de estación
+  // Adelantar y retroceder estaciones
+  const handlePrev = () => {
+    const idx = STATIONS.findIndex(st => st.url === currentStation.url);
+    if (idx > 0) {
+      setCurrentStation(STATIONS[idx - 1]);
+      setError(false);
+    }
+  };
+
+  const handleNext = () => {
+    const idx = STATIONS.findIndex(st => st.url === currentStation.url);
+    if (idx < STATIONS.length - 1) {
+      setCurrentStation(STATIONS[idx + 1]);
+      setError(false);
+    }
+  };
+
   useEffect(() => {
     setIsPlaying(true);
   }, [currentStation]);
 
   return (
     <div className="App">
-      <img
-        src="https://img.icons8.com/ios-filled/50/eebbc3/radio.png"
-        alt="Radio"
-        style={{ width: 48, marginBottom: 12, visibility: 'hidden' }}
+      
+      <RadioPlayer
+        streamUrl={currentStation.url}
+        stations={STATIONS}
+        currentStation={currentStation}
+        setCurrentStation={setCurrentStation}
+        volume={volume}
+        setVolume={setVolume}
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+        error={error}
       />
-      <h1>{}</h1>
-
-      <div style={{ marginTop: 32 }}>
-        <RadioPlayer
-          streamUrl={currentStation.url}
-          stations={STATIONS}
-          currentStation={currentStation}
-          setCurrentStation={setCurrentStation}
-          volume={volume}
-          setVolume={setVolume}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-        />
-      </div>
       <RadioRetro
         stations={STATIONS}
         currentStation={currentStation}
         setCurrentStation={setCurrentStation}
+        setError={setError}
+        onPrev={handlePrev}
+        onNext={handleNext}
       />
     </div>
   );

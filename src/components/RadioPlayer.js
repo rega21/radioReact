@@ -2,22 +2,21 @@ import React, { useRef, useEffect, useState } from 'react';
 
 function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation }) {
   const audioRef = useRef(null);
+  const errorAudioRef = useRef(null);
   const [error, setError] = useState(false);
   const [volume, setVolume] = useState(1);
   const [timeoutId, setTimeoutId] = useState(null);
-  const [countdown, setCountdown] = useState(3);
   const [loading, setLoading] = useState(true);
-  const [activeBtn, setActiveBtn] = useState(null); // 'play', 'pause', 'next'
+  const [isOn, setIsOn] = useState(false);
 
   useEffect(() => {
     setError(false);
-    setCountdown(3);
     setLoading(true);
     if (timeoutId) {
       clearTimeout(timeoutId);
       setTimeoutId(null);
     }
-    if (audioRef.current) {
+    if (audioRef.current && isOn) {
       audioRef.current.load();
       audioRef.current.volume = volume;
       audioRef.current.play().catch(() => {
@@ -25,44 +24,70 @@ function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation })
       });
     }
     // eslint-disable-next-line
-  }, [streamUrl]);
+  }, [streamUrl, isOn]);
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
+    if (errorAudioRef.current) {
+      errorAudioRef.current.volume = volume;
+    }
   }, [volume]);
 
-  // Maneja el contador regresivo cuando hay error
+  // Cuando cambia el estado de error, reproduce el sonido
   useEffect(() => {
-    let intervalId;
-    if (error) {
-      setCountdown(3);
-      intervalId = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(intervalId);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      setCountdown(3);
+    if (isOn && error && errorAudioRef.current) {
+      errorAudioRef.current.currentTime = 0;
+      errorAudioRef.current.play();
+    } else if (errorAudioRef.current) {
+      errorAudioRef.current.pause();
+      errorAudioRef.current.currentTime = 0;
     }
-    return () => clearInterval(intervalId);
-  }, [error]);
+  }, [error, isOn]);
+
+  // Apaga todo si la radio está OFF
+  useEffect(() => {
+    if (!isOn) {
+      handlePause();
+    }
+  }, [isOn]);
 
   const handlePlay = () => {
-    audioRef.current.play().catch(() => {
-      handleError();
-    });
-    setActiveBtn('play');
+    if (!isOn) return;
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {
+        handleError();
+      });
+    }
   };
 
   const handlePause = () => {
-    audioRef.current.pause();
-    setActiveBtn('pause');
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    if (errorAudioRef.current) {
+      errorAudioRef.current.pause();
+      errorAudioRef.current.currentTime = 0;
+    }
+    setLoading(false);
+  };
+
+  const handlePrev = () => {
+    if (!isOn) return;
+    const idx = stations.findIndex(st => st.url === currentStation.url);
+    if (idx > 0) {
+      setCurrentStation(stations[idx - 1]);
+    }
+  };
+
+  const handleNext = () => {
+    if (!isOn) return;
+    const idx = stations.findIndex(st => st.url === currentStation.url);
+    if (idx < stations.length - 1) {
+      setCurrentStation(stations[idx + 1]);
+    }
   };
 
   const handleAudioError = () => {
@@ -73,26 +98,11 @@ function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation })
 
   const handleError = () => {
     setError(true);
-    setCountdown(3);
     // Espera 3 segundos y cambia automáticamente
     const id = setTimeout(() => {
-      skipToNext(false); // No activa el botón visualmente
+      handleNext();
     }, 3000);
     setTimeoutId(id);
-  };
-
-  // Función para saltar a la siguiente emisora
-  const skipToNext = (fromUser = false) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-      setTimeoutId(null);
-    }
-    const idx = stations.findIndex(st => st.url === currentStation.url);
-    if (idx !== -1) {
-      const nextIdx = (idx + 1) % stations.length; // Loop
-      setCurrentStation(stations[nextIdx]);
-      if (fromUser) setActiveBtn('next');
-    }
   };
 
   return (
@@ -103,35 +113,32 @@ function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation })
         onError={handleAudioError}
         onCanPlay={handleCanPlay}
       />
-      <div className="radio-player-controls">
+      <audio
+        ref={errorAudioRef}
+        src="/static.mp3"
+        preload="auto"
+        loop
+      />
+      <div className="radio-buttons-row">
         <button
-          className={`radio-btn${activeBtn === 'play' ? ' active' : ''}`}
-          onClick={() => {
-            handlePlay();
-            setActiveBtn('play');
-            setTimeout(() => setActiveBtn(null), 500);
-          }}
-          aria-label="Reproducir"
+          aria-label="ON"
+          className={isOn ? "on-btn active" : "on-btn"}
+          onClick={() => setIsOn(true)}
         >
-          ▶ Play
+          ON
         </button>
         <button
-          className={`radio-btn pause${activeBtn === 'pause' ? ' active' : ''}`}
-          onClick={() => { handlePause(); setActiveBtn('pause'); }}
-          aria-label="Pausar"
+          aria-label="OFF"
+          className={!isOn ? "off-btn active" : "off-btn"}
+          onClick={() => setIsOn(false)}
         >
-          ■ Pause
+          OFF
         </button>
-        <button
-          className={`radio-btn${activeBtn === 'next' ? ' active' : ''}`}
-          style={{ marginLeft: 8 }}
-          onClick={() => { skipToNext(true); setActiveBtn('next'); }}
-          disabled={stations.length <= 1}
-          title="Siguiente emisora"
-          aria-label="Siguiente emisora"
-        >
-          Next ▶
-        </button>
+        <button aria-label="OFF" onClick={handlePause}></button>
+        <button aria-label="Prev" onClick={handlePrev}>◀</button>
+        <button aria-label="Play" onClick={handlePlay}>▶</button>
+        <button aria-label="Stop" onClick={handlePause}>■</button>
+        <button aria-label="Next" onClick={handleNext}>▶▶</button>
       </div>
       <div style={{ marginTop: 16 }}>
         <label style={{ color: "#eebbc3", fontWeight: "bold" }}>
@@ -147,11 +154,6 @@ function RadioPlayer({ streamUrl, stations, currentStation, setCurrentStation })
           />
         </label>
       </div>
-      {error && (
-        <div className="radio-player-error">
-          Problemas de señal, cambiando automáticamente en {countdown} segundos...
-        </div>
-      )}
       {loading && !error && (
         <div className="radio-loader" title="Cargando..."></div>
       )}
